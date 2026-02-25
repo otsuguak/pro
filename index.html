@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Residentes | Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); }
+        /* Efecto de carga (Esqueleto) */
+        .skeleton { background: #e2e8f0; background-image: linear-gradient(90deg, #e2e8f0 0px, #f1f5f9 40px, #e2e8f0 80px); background-size: 200vw 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: -100vw 0; } 100% { background-position: 100vw 0; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <nav class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg shadow-md shadow-blue-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">Comunidad<span class="text-blue-600">Pro</span></span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="#noticias" class="hidden md:block text-sm font-medium text-slate-500 hover:text-blue-600 transition">Comunicados</a>
+                    <a href="#servicios" class="hidden md:block text-sm font-medium text-slate-500 hover:text-blue-600 transition">Servicios</a>
+                    <a href="crm.html" class="bg-slate-900 hover:bg-blue-600 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition-all transform hover:-translate-y-0.5 shadow-lg">
+                        Iniciar sesion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1464938050520-ef2270bb8ce8?q=80&w=2000&auto=format&fit=crop" alt="Copropiedad" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-slate-900/60 mix-blend-multiply"></div>
+        </div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-block glass-card px-8 py-10 rounded-2xl shadow-2xl max-w-3xl mx-auto border border-white/20">
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6 inline-block">Portal Oficial</span>
+                <h1 class="text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
+                    Tu comunidad, <br><span class="text-blue-600">siempre conectada.</span>
+                </h1>
+                <p class="text-lg text-slate-600 mb-8 max-w-xl mx-auto">Mantente al día con las últimas noticias de la copropiedad y reserva las zonas comunes fácilmente desde un solo lugar.</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#noticias" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">Ver Noticias</a>
+                    <a href="#servicios" class="bg-white text-slate-700 px-8 py-3 rounded-full font-bold hover:bg-slate-50 border border-slate-200 transition shadow-sm">Reservar Zonas</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="noticias" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-end mb-12 border-b border-slate-200 pb-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Cartelera Digital</h2>
+                    <p class="text-slate-500 mt-2">Comunicados oficiales de la administración.</p>
+                </div>
+            </div>
+
+            <div id="contenedor-noticias" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="skeleton h-48 rounded-xl w-full mb-4"></div>
+                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
+                    <div class="skeleton h-6 w-3/4 rounded mb-2"></div>
+                    <div class="skeleton h-4 w-full rounded"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hidden md:block">
+                    <div class="skeleton h-48 rounded-xl w-full mb-4"></div>
+                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
+                    <div class="skeleton h-6 w-3/4 rounded mb-2"></div>
+                    <div class="skeleton h-4 w-full rounded"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="servicios" class="py-20 bg-white border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Servicios y Reservas</h2>
+                <p class="text-slate-500 mt-2 max-w-2xl mx-auto">Gestiona tus reservas y solicitudes a través de nuestros formularios en línea.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                
+                <div id="box-form-1" class="hidden flex-col bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] transition-all hover:shadow-md">
+                    <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                        <span class="font-bold tracking-wide text-sm uppercase" id="title-form-1">Servicio 1</span>
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <iframe id="iframe-form-1" src="" class="w-full flex-1" frameborder="0" marginheight="0" marginwidth="0">Cargando...</iframe>
+                </div>
+
+                <div id="box-form-2" class="hidden flex-col bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] transition-all hover:shadow-md">
+                    <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                        <span class="font-bold tracking-wide text-sm uppercase" id="title-form-2">Servicio 2</span>
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <iframe id="iframe-form-2" src="" class="w-full flex-1" frameborder="0" marginheight="0" marginwidth="0">Cargando...</iframe>
+                </div>
+
+                <div id="box-form-3" class="hidden flex-col bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] transition-all hover:shadow-md">
+                    <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                        <span class="font-bold tracking-wide text-sm uppercase" id="title-form-3">Servicio 3</span>
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <iframe id="iframe-form-3" src="" class="w-full flex-1" frameborder="0" marginheight="0" marginwidth="0">Cargando...</iframe>
+                </div>
+
+                <div id="box-form-4" class="hidden flex-col bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] transition-all hover:shadow-md">
+                    <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                        <span class="font-bold tracking-wide text-sm uppercase" id="title-form-4">Servicio 4</span>
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <iframe id="iframe-form-4" src="" class="w-full flex-1" frameborder="0" marginheight="0" marginwidth="0">Cargando...</iframe>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>&copy; 2026 Comunidad Pro. Todos los derechos reservados.</p>
+    </footer>
+    <div id="modal-noticia" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] relative transform transition-all scale-100">
+            
+            <button onclick="cerrarModalNoticia()" class="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/70 text-white rounded-full p-2 backdrop-blur-md transition focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div id="modal-noticia-img-container" class="w-full h-64 sm:h-80 hidden relative">
+                <img id="modal-noticia-img" src="" alt="Imagen Noticia" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
+
+            <div class="p-8 overflow-y-auto">
+                <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+                    <span id="modal-noticia-badge" class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm"></span>
+                    <span id="modal-noticia-fecha" class="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full"></span>
+                </div>
+                
+                <h2 id="modal-noticia-titulo" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight"></h2>
+                
+                <div id="modal-noticia-mensaje" class="text-slate-700 text-base sm:text-lg leading-relaxed whitespace-pre-wrap mb-8"></div>
+                
+                <div class="pt-6 border-t border-slate-100 flex items-center bg-slate-50 p-4 rounded-xl">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl mr-4 shadow-inner">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-0.5">Comunicado Oficial emitido por</p>
+                        <p id="modal-noticia-autor" class="text-sm font-bold text-slate-800"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="portal.js"></script>
+</body>
+</html>

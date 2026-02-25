@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Pro - Sistema de Gestión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        /* Ocultar barra de scroll en formularios para que se vea más limpio */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen overflow-hidden">
+
+    <div id="loading-pro" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md transition-opacity duration-700">
+        <div class="relative w-24 h-24">
+            <div class="absolute inset-0 rounded-full border-t-2 border-indigo-500 animate-spin"></div>
+            <div class="absolute inset-2 rounded-full border-r-2 border-blue-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+            <div class="absolute inset-4 rounded-full border-b-2 border-cyan-300 animate-spin" style="animation-duration: 2s;"></div>
+        </div>
+        <h2 id="loader-title" class="mt-8 text-white text-2xl font-light tracking-widest uppercase">Iniciando <span class="font-bold text-indigo-400">Sistema</span></h2>
+        <p id="loader-subtitle" class="mt-2 text-slate-400 text-sm animate-pulse">Estableciendo conexión segura...</p>
+    </div>
+
+    <div id="login-section" class="flex h-screen w-full">
+        <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-8 sm:px-16 lg:px-24 overflow-y-auto no-scrollbar">
+            <div class="w-full max-w-md py-12">
+                <div class="mb-10 text-center lg:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 text-white mb-6 shadow-lg shadow-blue-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Bienvenido al CRM</h1>
+                    <p class="text-gray-500 mt-2">Ingresa tus credenciales para acceder a la gestión.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="email-input" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors bg-gray-50 focus:bg-white outline-none" 
+                            placeholder="ejemplo@correo.com">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                            <a href="#" onclick="mostrarRecuperacion()" class="text-xs font-medium text-blue-600 hover:text-blue-500 transition">¿Olvidaste tu contraseña?</a>
+                        </div>
+                        <input type="password" id="pass-input" required 
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors bg-gray-50 focus:bg-white outline-none" 
+                            placeholder="••••••••">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Acceso</label>
+                        <select id="role-input" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors bg-gray-50 focus:bg-white outline-none text-gray-700">
+                            <option value="usuario">Usuario (Residente)</option>
+                            <option value="agente">Administrador (Resolutor)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="login()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-0.5">
+                        Iniciar Sesión
+                    </button>
+                </div>
+
+                <p class="text-center mt-8 text-sm text-gray-600">
+                    ¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline transition">Crear usuario nuevo</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex w-1/2 relative items-center justify-center overflow-hidden bg-slate-900">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop" 
+                 alt="Edificio corporativo" class="absolute inset-0 w-full h-full object-cover opacity-80">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+            
+            <div class="relative z-10 glass-effect p-10 rounded-2xl max-w-lg mx-8 text-white shadow-2xl">
+                <h3 class="text-3xl font-bold mb-4 leading-tight">Gestión inteligente para tu copropiedad.</h3>
+                <p class="text-slate-200 text-lg leading-relaxed">
+                    Administra solicitudes, comunícate con los residentes y mantén todo bajo control desde un solo lugar.
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="register-section" class="hidden flex h-screen w-full">
+        <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-8 sm:px-16 lg:px-24 overflow-y-auto no-scrollbar">
+            <div class="w-full max-w-md py-12">
+                
+                <div class="mb-8 text-center lg:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-600 text-white mb-6 shadow-lg shadow-green-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Crear Cuenta</h2>
+                    <p class="text-gray-500 mt-2">Únete a nuestra plataforma de gestión.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <input type="text" id="reg-nombre" placeholder="Nombre completo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+                    <input type="email" id="reg-email" placeholder="Correo electrónico" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+        
+                    <div class="grid grid-cols-2 gap-4">
+                        <select id="reg-rol" class="p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:ring-2 focus:ring-green-600 outline-none transition">
+                            <option value="usuario">Usuario</option>
+                            <option value="agente">Administrador</option>
+                        </select>
+                        <input type="tel" id="reg-celular" placeholder="Celular / WhatsApp" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="reg-inmueble" placeholder="Apto / Casa" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+                        <select id="reg-tipo-residente" class="p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 focus:ring-2 focus:ring-green-600 outline-none transition">
+                            <option value="" disabled selected>Tipo Residente</option>
+                            <option value="Propietario">Propietario</option>
+                            <option value="Arrendatario">Arrendatario</option>
+                        </select>
+                    </div>
+
+                    <input type="password" id="reg-pass" placeholder="Contraseña" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+                    <input type="password" id="reg-pass-confirm" placeholder="Confirmar contraseña" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 outline-none transition bg-gray-50 focus:bg-white">
+
+                    <div class="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg mt-2">
+                        <input type="checkbox" id="captcha" class="w-5 h-5 text-green-600 rounded focus:ring-green-600 border-gray-300 cursor-pointer">
+                        <label for="captcha" class="ml-2 text-sm text-gray-700 cursor-pointer select-none">Confirmar que no soy un robot</label>
+                    </div>
+
+                    <button onclick="registrarUsuario()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition shadow-md mt-6 transform hover:-translate-y-0.5">
+                        Registrarme Ahora
+                    </button>
+                    <button onclick="mostrarLogin()" class="w-full text-gray-500 text-sm mt-4 hover:text-gray-800 hover:underline transition">
+                        Volver al inicio de sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex w-1/2 relative items-center justify-center overflow-hidden bg-slate-900">
+            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-70">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+            
+            <div class="relative z-10 glass-effect p-10 rounded-2xl max-w-lg mx-8 text-white shadow-2xl">
+                <h3 class="text-3xl font-bold mb-4 leading-tight">Conéctate con tu comunidad.</h3>
+                <p class="text-slate-200 text-lg leading-relaxed">Registra tus solicitudes, haz seguimiento y mantente al día con todo lo que ocurre en la copropiedad.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="recovery-section" class="hidden flex h-screen w-full">
+        <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-8 sm:px-16 lg:px-24 overflow-y-auto no-scrollbar">
+            <div class="w-full max-w-md py-12">
+                
+                <div class="mb-10 text-center lg:text-left">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-500 text-white mb-6 shadow-lg shadow-yellow-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Recuperar Acceso</h2>
+                    <p class="text-gray-500 mt-2">Te ayudaremos a restablecer tu contraseña.</p>
+                </div>
+                
+                <div id="step-1-otp">
+                    <p class="text-sm text-gray-600 mb-6 font-medium">1. Te enviaremos un código de seguridad a tu correo registrado.</p>
+                    
+                    <label class="text-xs font-bold text-gray-500 uppercase">Correo Electrónico</label>
+                    <input type="email" id="rec-email" placeholder="ejemplo@correo.com" class="w-full p-3 border border-gray-300 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 focus:bg-white transition">
+                    
+                    <label class="text-xs font-bold text-gray-500 uppercase">Inmueble</label>
+                    <input type="text" id="rec-inmueble" placeholder="Ej: 2101" class="w-full p-3 border border-gray-300 rounded-lg mb-6 outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 focus:bg-white transition">
+                    
+                    <button onclick="solicitarCodigo()" class="w-full bg-yellow-500 text-white p-3 rounded-lg hover:bg-yellow-600 font-bold transition shadow-md transform hover:-translate-y-0.5">
+                        Enviar Código
+                    </button>
+                </div>
+
+                <div id="step-2-otp" class="hidden">
+                    <p class="text-sm text-green-600 mb-6 font-bold bg-green-50 p-3 rounded-lg border border-green-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ¡Código enviado! Revisa tu bandeja de entrada.
+                    </p>
+                    
+                    <label class="text-xs font-bold text-gray-500 uppercase">Código de 6 dígitos</label>
+                    <input type="number" id="rec-codigo" placeholder="Ej: 123456" class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-center tracking-widest text-lg font-bold outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 focus:bg-white transition">
+                    
+                    <label class="text-xs font-bold text-gray-500 uppercase">Nueva Contraseña</label>
+                    <input type="password" id="rec-pass" placeholder="Nueva clave segura" class="w-full p-3 border border-gray-300 rounded-lg mb-6 outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 focus:bg-white transition">
+                    
+                    <button onclick="cambiarPasswordConCodigo()" class="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 font-bold transition shadow-md transform hover:-translate-y-0.5">
+                        Confirmar Cambio
+                    </button>
+                </div>
+                
+                <button onclick="ocultarRecuperacion()" class="w-full text-gray-500 text-sm mt-8 hover:text-gray-800 hover:underline transition">
+                    Cancelar y volver al inicio
+                </button>
+            </div>
+        </div>
+
+        <div class="hidden lg:flex w-1/2 relative items-center justify-center overflow-hidden bg-slate-900">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-50">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+            
+            <div class="relative z-10 glass-effect p-10 rounded-2xl max-w-lg mx-8 text-white shadow-2xl">
+                <h3 class="text-3xl font-bold mb-4 leading-tight">Tu seguridad es nuestra prioridad.</h3>
+                <p class="text-slate-200 text-lg leading-relaxed">Sigue los pasos para restablecer tu contraseña y recuperar el acceso a tu cuenta de forma segura y encriptada.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="dashboard" class="hidden flex h-screen w-full">
+        <nav class="w-64 bg-slate-900 text-white p-6 shadow-xl z-10 flex flex-col">
+            <div class="flex items-center space-x-2 mb-10 justify-center">
+                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <h1 class="text-2xl font-bold tracking-wide">CRM<span class="text-blue-400">Pro</span></h1>
+            </div>
+
+            <ul class="space-y-3 flex-grow">
+                <li class="cursor-pointer bg-blue-600/20 text-blue-400 font-bold rounded-lg p-3 flex items-center transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Panel Principal
+                </li>
+                <li id="menu-crear" onclick="abrirModalPQR()" class="cursor-pointer hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg p-3 hidden flex items-center transition">
+                    <svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Nueva PQR
+                </li>
+                <li id="menu-descargar" onclick="descargarExcel()" class="cursor-pointer hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg p-3 hidden flex items-center transition">
+                    <svg class="w-5 h-5 mr-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Exportar Reporte
+                </li>
+            </ul>
+
+            <div class="border-t border-slate-800 pt-4 mt-auto">
+                <li class="cursor-pointer hover:bg-red-500/10 text-red-400 hover:text-red-300 rounded-lg p-3 flex items-center transition list-none" onclick="location.reload()">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Cerrar Sesión
+                </li>
+            </div>
+        </nav>
+
+        <main class="flex-1 p-8 overflow-y-auto bg-gray-50">
+            <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div>
+                    <h2 id="welcome-text" class="text-2xl font-bold text-gray-800 tracking-tight">Bienvenido</h2>
+                    <p class="text-sm text-gray-500 mt-1">Aquí está el resumen de tu gestión de hoy.</p>
+                </div>
+                <span id="role-badge" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-bold capitalize shadow-sm">Rol</span>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition group">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Casos</p>
+                            <p id="kpi-total" class="text-3xl font-extrabold text-gray-800 mt-1">0</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition group">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sin Asignar</p>
+                            <p id="kpi-abiertos" class="text-3xl font-extrabold text-red-600 mt-1">0</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-xl text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition group">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">En Gestión</p>
+                            <p id="kpi-proceso" class="text-3xl font-extrabold text-orange-500 mt-1">0</p>
+                        </div>
+                        <div class="p-4 bg-orange-50 rounded-xl text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition group">
+                        <div>
+                            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Resueltos</p>
+                            <p id="kpi-cerrados" class="text-3xl font-extrabold text-green-600 mt-1">0</p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <h3 class="text-lg font-bold mb-6 text-gray-800 border-b border-gray-100 pb-4">Tendencia de Casos</h3>
+                <div class="relative h-64 w-full max-w-4xl mx-auto">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h3 class="text-lg font-bold text-gray-800">Listado de Solicitudes</h3>
+                
+                    <div id="admin-filters" class="hidden space-x-3 w-full sm:w-auto">
+                        <select id="filtro-tipo" onchange="filtrarTabla()" class="p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-gray-600 shadow-sm transition">
+                            <option value="Todos">Todos los Tipos</option>
+                            <option value="Petición">Peticiones</option>
+                            <option value="Queja">Quejas</option>
+                            <option value="Reclamo">Reclamos</option>
+                            <option value="Felicitación">Felicitaciones</option>
+                        </select>
+                    
+                        <select id="filtro-estado" onchange="filtrarTabla()" class="p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer text-gray-600 shadow-sm transition">
+                            <option value="Todos">Todos los Estados</option>
+                            <option value="Abierto">Sin Asignar (Abiertos)</option>
+                            <option value="En Proceso">En Gestión</option>
+                            <option value="Cerrado">Resueltos (Cerrados)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left whitespace-nowrap">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider">ID</th>
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider">Fecha</th> 
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider">Usuario</th>
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider">Tipo</th>
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider">Estado</th>
+                                <th class="p-4 font-bold text-gray-500 uppercase text-xs tracking-wider text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pqr-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-crear-pqr" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all">
+            <div class="bg-indigo-600 p-5 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xl flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Crear Nueva Solicitud
+                </h3>
+                <button onclick="cerrarModalPQR()" class="text-white hover:text-indigo-200 transition bg-indigo-700/50 rounded-full p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-8 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tipo</label>
+                        <select id="pqr-tipo" class="w-full p-3 border border-gray-300 rounded-lg mt-2 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            <option value="Petición">Petición</option>
+                            <option value="Queja">Queja</option>
+                            <option value="Reclamo">Reclamo</option>
+                            <option value="Felicitación">Felicitación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Categoría</label>
+                        <select id="pqr-subtipo" class="w-full p-3 border border-gray-300 rounded-lg mt-2 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            <option value="Administración">Administración</option>
+                            <option value="Seguridad">Seguridad</option>
+                            <option value="Aseo">Aseo / Zonas Comunes</option>
+                            <option value="Convivencia">Convivencia / Ruido</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Descripción detallada</label>
+                    <textarea id="pqr-desc" placeholder="Describe tu caso aquí..." class="w-full p-4 border border-gray-300 rounded-lg mt-2 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition resize-none" rows="4"></textarea>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">Adjuntar evidencia (Foto/PDF)</label>
+                    <input type="file" id="pqr-archivo" class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition cursor-pointer border border-gray-200 rounded-lg p-1 bg-gray-50">
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="enviarPQR()" class="bg-indigo-600 text-white px-6 py-3.5 rounded-lg w-full font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                        Enviar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div id="modal-detalle" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-blue-600 p-5 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg">Detalle de la Solicitud</h3>
+                <button onclick="cerrarModal()" class="hover:text-blue-200 transition bg-blue-700/50 rounded-full p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-8 space-y-5">
+                <div class="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div><p class="text-gray-500 text-xs font-bold uppercase mb-1">ID Caso</p><p id="det-id" class="font-bold text-gray-800"></p></div>
+                    <div><p class="text-gray-500 text-xs font-bold uppercase mb-1">Estado</p><p id="det-estado" class="font-bold"></p></div>
+                    <div class="col-span-2 pt-2 border-t border-gray-200"><p class="text-gray-500 text-xs font-bold uppercase mb-1">Usuario</p><p id="det-email" class="text-gray-800 font-medium"></p></div>
+                    <div class="col-span-2 pt-2 border-t border-gray-200">
+                        <p class="text-gray-500 text-xs font-bold uppercase mb-1">Descripción</p>
+                        <p id="det-desc" class="italic text-gray-700 bg-white p-3 rounded border border-gray-100 mt-1"></p>
+                        <div id="det-adjunto-container" class="mt-3"></div> 
+                    </div>
+                </div>
+
+                <div id="seccion-respuesta" class="pt-2">
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Gestión del Agente</label>
+                    <div class="mb-4">
+                        <label class="text-xs text-gray-500 font-bold uppercase">Estado del caso:</label>
+                        <select id="input-estado" class="w-full p-3 border border-gray-300 rounded-lg text-sm bg-gray-50 mt-1 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                            <option value="En Proceso">En Proceso (Seguir trabajando)</option>
+                            <option value="Cerrado">Cerrado (Finalizar caso)</option>
+                        </select>
+                    </div>
+                    <textarea id="input-respuesta" class="w-full p-4 border border-gray-300 rounded-lg h-28 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition resize-none" placeholder="Escribe la solución o respuesta al residente aquí..."></textarea>
+                    <button onclick="guardarRespuesta()" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
+                        Actualizar y/o Cerrar Caso
+                    </button>
+                </div>
+
+                <div id="vista-respuesta-usuario" class="hidden border border-green-200 bg-green-50 p-4 rounded-xl mt-4">
+                    <div class="flex items-center mb-2">
+                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-xs font-bold text-green-800 uppercase tracking-wide">Respuesta Oficial</p>
+                    </div>
+                    <p id="det-respuesta-texto" class="text-sm text-gray-800 bg-white p-3 rounded border border-green-100"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="msg-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[110] backdrop-blur-sm transition-opacity">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all border-t-4 border-blue-600 text-center" id="msg-modal-content">
+            <div class="flex justify-center mb-5" id="msg-icon"></div>
+            <h3 id="msg-title" class="text-xl font-bold text-gray-900 mb-2">Notificación</h3>
+            <p id="msg-body" class="text-gray-600 mb-8 text-sm">Mensaje aquí...</p>
+            <button onclick="cerrarMensaje()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                Aceptar
+            </button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
