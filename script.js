@@ -577,6 +577,7 @@ function verDetalle(id) {
         document.getElementById('seccion-respuesta').classList.add('hidden');
         document.getElementById('vista-respuesta-usuario').classList.remove('hidden');
         document.getElementById('det-respuesta-texto').innerText = respuestaActual || "Aún no hay una respuesta oficial.";
+        toggleBtnGuardar(false); // <--- Oculta el botón de guardar al residente
     } else {
         document.getElementById('seccion-respuesta').classList.remove('hidden');
         document.getElementById('vista-respuesta-usuario').classList.add('hidden');
@@ -585,6 +586,7 @@ function verDetalle(id) {
         const estadoActual = caso.Estado || "Abierto";
         const selector = document.getElementById('input-estado');
         if (selector) selector.value = (estadoActual === 'Cerrado') ? 'Cerrado' : 'En Proceso';
+        toggleBtnGuardar(true); // <--- Muestra el botón de guardar al Administrador
     }
 }
 
