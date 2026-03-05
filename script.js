@@ -1,5 +1,5 @@
 // 1. CONFIGURACIÓN GLOBAL
-const URL_API = "https://script.google.com/macros/s/AKfycbylbsekE_KPfJpGXkBT5xte1e-yRCrSBXX6PgCvsvoAJxecPgrVSgHGwOzTcVkUGp1Zuw/exec"; 
+const URL_API = "https://script.google.com/macros/s/AKfycbyWoIp5PmJcOyTnI2iEtkvJIaSbE7Yx3ywU2Q2ebWE1KYTpq98-QHcHuwel-Uvi-xUB9Q/exec"; 
 
 let usuarioActual = "";
 let rolActual = "";
@@ -214,13 +214,19 @@ async function login() {
             if (rolActual === 'usuario') {
                 document.getElementById('menu-crear').classList.remove('hidden');
                 document.getElementById('menu-descargar').classList.add('hidden'); 
-                document.getElementById('admin-filters').classList.add('hidden'); // Oculta filtros al residente
+                document.getElementById('admin-filters').classList.add('hidden'); 
                 document.getElementById('admin-filters').classList.remove('flex');
+                // Ocultar botones de admin:
+                document.getElementById('menu-admin-noticias').classList.add('hidden');
+                document.getElementById('menu-admin-config').classList.add('hidden');
             } else {
                 document.getElementById('menu-crear').classList.add('hidden');
                 document.getElementById('menu-descargar').classList.remove('hidden'); 
-                document.getElementById('admin-filters').classList.remove('hidden'); // Muestra filtros al agente
+                document.getElementById('admin-filters').classList.remove('hidden');
                 document.getElementById('admin-filters').classList.add('flex');
+                // Mostrar botones de admin:
+                document.getElementById('menu-admin-noticias').classList.remove('hidden');
+                document.getElementById('menu-admin-config').classList.remove('hidden');
             }
 
             await cargarDatosReales();
@@ -719,3 +725,251 @@ function filtrarTabla() {
     // Dibujamos la tabla solo con los que pasaron el filtro
     renderizarTabla(datosFiltrados);
 }
+
+// =====================================================================
+// --- LÓGICA DE DIRECTORIO Y CONFIGURACIÓN ---
+// =====================================================================
+window.abrirModalDirectorio = async () => {
+    document.getElementById('modal-directorio').classList.remove('hidden');
+    try {
+        const resp = await fetch(`${URL_API}?action=get_config`);
+        const data = await resp.json();
+        document.getElementById('dir-admin').innerText = data.TelAdmin || "No registrado";
+        document.getElementById('dir-porteria').innerText = data.TelPorteria || "No registrado";
+        document.getElementById('dir-emergencia').innerText = data.TelEmergencia || "No registrado";
+    } catch(e) {}
+};
+
+window.cerrarModalGeneral = (id) => document.getElementById(id).classList.add('hidden');
+
+window.abrirModalConfig = async () => {
+    document.getElementById('modal-admin-config').classList.remove('hidden');
+    mostrarLoader("Cargando", "Configuración", "Recuperando datos...");
+    try {
+        const resp = await fetch(`${URL_API}?action=get_config`);
+        const data = await resp.json();
+        document.getElementById('conf-f1-t').value = data.Form1_Titulo || ""; document.getElementById('conf-f1-u').value = data.Form1_URL || "";
+        document.getElementById('conf-f2-t').value = data.Form2_Titulo || ""; document.getElementById('conf-f2-u').value = data.Form2_URL || "";
+        document.getElementById('conf-f3-t').value = data.Form3_Titulo || ""; document.getElementById('conf-f3-u').value = data.Form3_URL || "";
+        document.getElementById('conf-f4-t').value = data.Form4_Titulo || ""; document.getElementById('conf-f4-u').value = data.Form4_URL || "";
+        document.getElementById('conf-tel-admin').value = data.TelAdmin || "";
+        document.getElementById('conf-tel-porteria').value = data.TelPorteria || "";
+        document.getElementById('conf-tel-emergencia').value = data.TelEmergencia || "";
+    } catch(e) {}
+    ocultarLoader();
+};
+
+window.guardarConfiguracionPro = async () => {
+    const payload = {
+        action: "save_config",
+        f1t: document.getElementById('conf-f1-t').value, f1u: document.getElementById('conf-f1-u').value,
+        f2t: document.getElementById('conf-f2-t').value, f2u: document.getElementById('conf-f2-u').value,
+        f3t: document.getElementById('conf-f3-t').value, f3u: document.getElementById('conf-f3-u').value,
+        f4t: document.getElementById('conf-f4-t').value, f4u: document.getElementById('conf-f4-u').value,
+        telAdmin: document.getElementById('conf-tel-admin').value,
+        telPorteria: document.getElementById('conf-tel-porteria').value,
+        telEmergencia: document.getElementById('conf-tel-emergencia').value
+    };
+
+    mostrarLoader("Guardando", "Ajustes", "Actualizando portal público...");
+    try {
+        await fetch(URL_API, { method: 'POST', body: JSON.stringify(payload) });
+        mostrarMensaje("¡Éxito!", "Configuración guardada correctamente.", "success");
+        cerrarModalGeneral('modal-admin-config');
+    } catch(e) { mostrarMensaje("Error", "Fallo al guardar.", "error"); }
+    ocultarLoader();
+};
+
+// =====================================================================
+// --- LÓGICA DE NOTICIAS (MÁXIMO 8, CON URL, EDITAR Y BORRAR) ---
+// =====================================================================
+let noticiasAdminGlobal = [];
+
+window.abrirModalNoticias = async () => {
+    document.getElementById('modal-admin-noticias').classList.remove('hidden');
+    volverListaNoticias();
+    await cargarNoticiasAdmin();
+};
+
+window.volverListaNoticias = () => {
+    document.getElementById('vista-form-noticia').classList.add('hidden');
+    document.getElementById('vista-lista-noticias').classList.remove('hidden');
+};
+
+window.cargarNoticiasAdmin = async () => {
+    mostrarLoader("Cargando", "Noticias", "Buscando comunicados...");
+    try {
+        const resp = await fetch(`${URL_API}?action=get_news`);
+        const data = await resp.json();
+        noticiasAdminGlobal = data.filter(n => n.Titulo); // Limpiamos vacíos
+        
+        document.getElementById('contador-noticias').innerText = noticiasAdminGlobal.length;
+        document.getElementById('btn-nueva-noticia').classList.toggle('hidden', noticiasAdminGlobal.length >= 8); // Límite de 8
+
+        const tbody = document.getElementById('tabla-admin-noticias');
+        if (noticiasAdminGlobal.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">No hay noticias.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = noticiasAdminGlobal.map(noti => {
+            const f = noti.Fecha ? new Date(noti.Fecha).toLocaleDateString() : '--';
+            return `
+                <tr class="border-b hover:bg-gray-50 text-sm">
+                    <td class="p-3">${f}</td>
+                    <td class="p-3 font-bold">${noti.Titulo}</td>
+                    <td class="p-3">${noti.Nivel || noti.Categoria || 'Info'}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="editarNoticiaPro('${noti.ID}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
+                        <button onclick="borrarNoticiaPro('${noti.ID}')" class="text-red-500"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+        }).join('');
+    } catch (e) { console.log(e); }
+    ocultarLoader();
+};
+
+// --- ABRIR FORMULARIO LIMPIO (A prueba de balas) ---
+window.mostrarFormularioNoticia = () => {
+    document.getElementById('vista-lista-noticias').classList.add('hidden');
+    document.getElementById('vista-form-noticia').classList.remove('hidden');
+    
+    document.getElementById('noti-id').value = "";
+    document.getElementById('noti-titulo').value = "";
+    document.getElementById('noti-contenido').value = "";
+    document.getElementById('noti-imagen').value = "";
+    document.getElementById('noti-categoria').value = "Informativo";
+    
+    // Asignación de fecha segura que no bloquea el navegador
+    document.getElementById('noti-fecha').value = new Date().toISOString().split('T')[0]; 
+    
+    document.getElementById('btn-guardar-noti').innerText = "Publicar Noticia";
+};
+
+// --- EDITAR NOTICIA (Buscador implacable) ---
+window.editarNoticiaPro = (id) => {
+    // 1. Buscamos el ID quitándole cualquier espacio fantasma
+    const noti = noticiasAdminGlobal.find(n => String(n.ID).trim() === String(id).trim());
+    
+    if(!noti) {
+        Swal.fire("Error", "No se encontró el ID de la noticia.", "error");
+        return;
+    }
+
+    // 2. Abrimos el formulario
+    mostrarFormularioNoticia();
+
+    // 3. Llenamos los datos sin importar si vienen vacíos
+    document.getElementById('noti-id').value = noti.ID;
+    document.getElementById('noti-titulo').value = noti.Titulo || '';
+    document.getElementById('noti-contenido').value = noti.Mensaje || noti.Contenido || '';
+    document.getElementById('noti-imagen').value = noti.Imagen || noti.ImagenUrl || '';
+
+    // Arreglar la categoría (por si vienen espacios del Excel)
+    const nivel = (noti.Nivel || noti.Categoria || 'Informativo').trim();
+    const selectCat = document.getElementById('noti-categoria');
+    // Verificamos que la categoría exista en las opciones
+    if([...selectCat.options].some(o => o.value === nivel)) {
+        selectCat.value = nivel;
+    }
+
+    // 4. Fechas a prueba de balas (Detecta formato texto o fecha real)
+    if(noti.Fecha) {
+        try {
+            let fechaString = String(noti.Fecha);
+            let d;
+            
+            if(fechaString.includes('/')) {
+                // Si el Excel lo mandó como 24/02/2026
+                let partes = fechaString.split('/');
+                d = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T12:00:00`);
+            } else {
+                d = new Date(noti.Fecha);
+            }
+
+            if (!isNaN(d.getTime())) {
+                const mes = String(d.getMonth() + 1).padStart(2, '0');
+                const dia = String(d.getDate()).padStart(2, '0');
+                document.getElementById('noti-fecha').value = `${d.getFullYear()}-${mes}-${dia}`;
+            }
+        } catch(e) { console.log("Error de fecha", e); }
+    }
+
+    // 5. Cambiamos el texto del botón
+    document.getElementById('btn-guardar-noti').innerText = "Actualizar Noticia";
+};
+
+window.guardarNoticiaPro = async () => {
+    // 1. Capturamos el ID y lo limpiamos de espacios fantasma
+    const idRaw = document.getElementById('noti-id').value;
+    const idLimpio = idRaw ? String(idRaw).trim() : "";
+
+    const payload = {
+        action: idLimpio ? "edit_news" : "save_news", 
+        id: idLimpio,
+        titulo: document.getElementById('noti-titulo').value.trim(),
+        mensaje: document.getElementById('noti-contenido').value.trim(),
+        nivel: document.getElementById('noti-categoria').value,
+        fecha: document.getElementById('noti-fecha').value,
+        imagenUrl: document.getElementById('noti-imagen').value.trim(),
+        autor: "Administración" // Fijo por ahora
+    };
+
+    if (!payload.titulo || !payload.mensaje) {
+        return Swal.fire("Atención", "El título y el mensaje son obligatorios.", "warning");
+    }
+
+    mostrarLoader("Guardando", "Noticia", "Sincronizando con la cartelera...");
+    
+    try {
+        console.log("Enviando orden a Google:", payload);
+        const resp = await fetch(URL_API, { method: 'POST', body: JSON.stringify(payload) });
+        const textoServidor = await resp.text();
+        console.log("Google Respondió:", textoServidor);
+        
+        if(textoServidor.includes('"error"')) {
+            ocultarLoader();
+            return Swal.fire("Error del Servidor", "Google rechazó la actualización. Revisa la consola.", "error");
+        }
+        
+        Swal.fire("¡Listo!", idLimpio ? "Noticia actualizada correctamente." : "Noticia publicada con éxito.", "success");
+        volverListaNoticias();
+        
+        // Freno de 1.5 segundos para que Google alcance a escribir en el Excel
+        setTimeout(async () => {
+            await cargarNoticiasAdmin(); 
+            ocultarLoader();
+        }, 1500);
+
+    } catch(e) {
+        ocultarLoader();
+        Swal.fire("Error de conexión", "Fallo al comunicarse con el servidor de Google.", "error");
+    }
+};
+
+// --- 2. BORRAR NOTICIA (Con ventana hermosa SweetAlert) ---
+window.borrarNoticiaPro = async (id) => {
+    // Adiós recuadro feo, hola alerta divina
+    const result = await Swal.fire({
+        title: '¿Eliminar Noticia?',
+        text: "Esta acción la borrará de la cartelera para siempre.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return; // Si cancela, no hacemos nada
+
+    mostrarLoader("Borrando", "Noticia", "Eliminando de la base de datos...");
+    try {
+        await fetch(URL_API, { method: 'POST', body: JSON.stringify({ action: "delete_news", id: id }) });
+        Swal.fire('¡Borrada!', 'La noticia fue eliminada correctamente.', 'success');
+        await cargarNoticiasAdmin(); // Recarga la tabla de fondo
+    } catch(e) {
+        Swal.fire('Error', 'Fallo al intentar borrar.', 'error');
+    }
+    ocultarLoader();
+};

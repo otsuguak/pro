@@ -1,4 +1,4 @@
-const URL_API = "https://script.google.com/macros/s/AKfycbylbsekE_KPfJpGXkBT5xte1e-yRCrSBXX6PgCvsvoAJxecPgrVSgHGwOzTcVkUGp1Zuw/exec";
+const URL_API = "https://script.google.com/macros/s/AKfycbyWoIp5PmJcOyTnI2iEtkvJIaSbE7Yx3ywU2Q2ebWE1KYTpq98-QHcHuwel-Uvi-xUB9Q/exec";
 
 let noticiasGlobales = []; // Guardamos las noticias en memoria para poder abrirlas luego
 

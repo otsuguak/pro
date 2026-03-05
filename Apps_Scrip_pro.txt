@@ -1,0 +1,307 @@
+// ==========================================
+// CÓDIGO COMPLETO - VERSIÓN "PLAN PRO" ⭐
+// ==========================================
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var action = e.parameter.action;
+
+  // --- 1. LOGIN ---
+  if (action === "login") {
+    var sheetUsers = ss.getSheetByName("Usuarios");
+    if (!sheetUsers) return errorJSON("Hoja Usuarios no encontrada");
+
+    var userData = sheetUsers.getDataRange().getValues();
+    userData.shift(); 
+    
+    var emailBus = (e.parameter.email || "").toLowerCase().trim();
+    var passBus = (e.parameter.pass || "").trim();
+    var rolBus = (e.parameter.rol || "").toLowerCase().trim();
+
+    var userRow = userData.find(function(row) {
+      return String(row[1]).toLowerCase().trim() === emailBus && 
+             String(row[6]).trim() === passBus &&  
+             String(row[2]).toLowerCase().trim() === rolBus;
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({ 
+        auth: !!userRow,
+        nombre: userRow ? userRow[0] : "" 
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ====================================================
+  // --- LO NUEVO: CARGAR NOTICIAS PARA EL PORTAL PRO ---
+  // ====================================================
+  if (action === "get_news") {
+    var sheetNews = ss.getSheetByName("Noticias");
+    if (!sheetNews) return outputJSON([]);
+    
+    var data = sheetNews.getDataRange().getValues();
+    var headers = data.shift();
+    
+    var news = data.map(function(row) {
+      var obj = {};
+      headers.forEach(function(header, i) { obj[header] = row[i]; });
+      return obj;
+    });
+    return outputJSON(news);
+  }
+
+  // =======================================================
+  // --- LO NUEVO: CARGAR FORMULARIOS PARA EL PORTAL PRO ---
+  // =======================================================
+  if (action === "get_config") {
+    // Busca la pestaña con mayúscula o minúscula para evitar errores
+    var sheetConfig = ss.getSheetByName("Configuracion") || ss.getSheetByName("configuracion");
+    if (!sheetConfig) return outputJSON({});
+    
+    var data = sheetConfig.getDataRange().getValues();
+    var config = {};
+    // Empezamos en i=1 para saltar la fila de títulos (Parametro, Valor)
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0]) {
+        config[data[i][0].toString().trim()] = data[i][1];
+      }
+    }
+    return outputJSON(config);
+  }
+
+  // --- 2. CARGAR DATOS PQRs (Para el CRM) ---
+  var sheetPQRs = ss.getSheetByName("PQRs"); 
+  if (!sheetPQRs) return outputJSON([]);
+
+  var sheetUsers = ss.getSheetByName("Usuarios");
+  var mapNombres = {}; 
+  if (sheetUsers) {
+      var usersData = sheetUsers.getDataRange().getValues();
+      usersData.shift(); 
+      usersData.forEach(function(u) {
+          var mail = String(u[1]).toLowerCase().trim();
+          var name = u[0];
+          mapNombres[mail] = name;
+      });
+  }
+
+  var data = sheetPQRs.getDataRange().getValues();
+  var headers = data.shift(); 
+  
+  var emailUser = (e.parameter.email || "").toLowerCase().trim();
+  var rolUser = (e.parameter.rol || "").toLowerCase().trim();
+
+  var results = data.map(function(row) {
+    var obj = {};
+    headers.forEach(function(header, i) {
+      obj[header] = row[i];
+    });
+    var emailPQR = String(obj['Email'] || "").toLowerCase().trim();
+    obj['NombreReal'] = mapNombres[emailPQR] || emailPQR;
+    return obj;
+  }).filter(function(item) {
+    if (rolUser === "usuario") return String(item['Email']).toLowerCase().trim() === emailUser;
+    return true; 
+  });
+
+  return outputJSON(results);
+}
+
+//*************************************************************** */
+//                        doPost
+//*************************************************************** */
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const body = JSON.parse(e.postData.contents);
+    const action = body.action;
+
+    // --- A. REGISTRO ---
+    if (action === "register") {
+      const sheet = ss.getSheetByName("Usuarios");
+      const data = sheet.getDataRange().getValues();
+      
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][1]).toLowerCase() === String(body.email).toLowerCase()) return errorJSON("El correo ya está registrado.");
+      }
+      if (body.rol === "agente") {
+          const existeAgente = data.some(row => String(row[2]).toLowerCase() === "agente");
+          if (existeAgente) return errorJSON("Acceso denegado: Ya existe un Agente Principal.");
+      }
+      sheet.appendRow([body.nombre, body.email, body.rol, body.inmueble, body.tipoResidente, body.celular, body.password, new Date(), ""]);
+      return successJSON();
+    }
+
+    // --- B. CREAR PQR ---
+    if (body.descripcion && body.tipo) { 
+       const sheetPQR = ss.getSheetByName("PQRs");
+       const id = "CASO-" + Math.floor(Math.random() * 100000);
+       let fileUrl = "";
+       if (body.archivoBase64 && body.nombreArchivo) {
+         try {
+           const data = Utilities.base64Decode(body.archivoBase64);
+           const blob = Utilities.newBlob(data, body.mimeType, body.nombreArchivo);
+           const file = DriveApp.createFile(blob);
+           file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+           fileUrl = file.getUrl();
+         } catch (err) { fileUrl = "Error subida: " + err.toString(); }
+       }
+       sheetPQR.appendRow([id, new Date(), body.email, body.tipo, body.subTipo, body.descripcion, "Abierto", fileUrl, "", ""]);
+       return successJSON();
+    }
+
+    // --- C. ACTUALIZAR PQR ---
+    if (action === "update_pqr") {
+       const sheetPQR = ss.getSheetByName("PQRs"); 
+       const data = sheetPQR.getDataRange().getValues();
+       
+       for (let i = 1; i < data.length; i++) {
+         if (String(data[i][0]) === String(body.id)) {
+           let respuestaPrevia = data[i][8] || ""; 
+           
+           // MAGIA PRO: Capturamos Fecha y Hora con formato exacto
+           let fechaHora = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+           
+           // Armamos el texto agregando la fecha y hora entre los corchetes
+           let nuevaRespuesta = respuestaPrevia + "\n[" + fechaHora + "]: " + body.respuesta;
+           
+           sheetPQR.getRange(i + 1, 9).setValue(nuevaRespuesta);
+           
+           if (body.estado) {
+              sheetPQR.getRange(i + 1, 7).setValue(body.estado);
+              // Si lo cierra, también guardamos la fecha/hora exacta de cierre
+              if (body.estado === "Cerrado") {
+                  sheetPQR.getRange(i + 1, 10).setValue(fechaHora);
+              }
+           }
+           break;
+         }
+       }
+       return successJSON();
+    }
+
+    // --- D. RECUPERAR CONTRASEÑA ---
+    if (action === "request_otp") {
+        const sheet = ss.getSheetByName("Usuarios");
+        const data = sheet.getDataRange().getValues();
+        let found = false;
+        
+        for (let i = 1; i < data.length; i++) {
+            if (String(data[i][1]).toLowerCase() === String(body.email).toLowerCase() && String(data[i][3]) === String(body.inmueble)) {
+                
+                const codigo = Math.floor(100000 + Math.random() * 900000);
+                sheet.getRange(i + 1, 9).setValue(codigo);
+                
+                try {
+                  GmailApp.sendEmail(body.email, "Tu Código de Acceso - CRM PQR", "", {
+                    htmlBody: `
+                      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                        <h2 style="color: #333;">Solicitud de Acceso</h2>
+                        <p>Hola, <strong>${data[i][0]}</strong>.</p>
+                        <p>Usa este código para continuar tu proceso:</p>
+                        <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
+                           <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #2563EB;">${codigo}</span>
+                        </div>
+                        <p style="font-size: 12px; color: #888;">Si no solicitaste este código, ignora este mensaje.</p>
+                      </div>
+                    `
+                  });
+                } catch(e) { return errorJSON("Error envío correo: " + e.toString()); }
+                
+                found = true; 
+                break;
+            }
+        }
+        return found ? successJSON() : errorJSON("Datos no encontrados.");
+    }
+
+    if (action === "reset_pass_otp") {
+        const sheet = ss.getSheetByName("Usuarios");
+        const data = sheet.getDataRange().getValues();
+        let found = false;
+        for (let i = 1; i < data.length; i++) {
+            if (String(data[i][1]).toLowerCase() === String(body.email).toLowerCase()) {
+                if (String(data[i][8]) === String(body.codigo)) {
+                    sheet.getRange(i + 1, 7).setValue(body.newPass);
+                    sheet.getRange(i + 1, 9).setValue(""); 
+                    found = true;
+                } else { return errorJSON("Código incorrecto."); }
+                break;
+            }
+        }
+        return found ? successJSON() : errorJSON("Error al actualizar.");
+    }
+
+    // --- E. GUARDAR, EDITAR Y BORRAR NOTICIAS ---
+    if (action === "save_news") {
+      const sheet = ss.getSheetByName("Noticias");
+      if (sheet.getLastRow() >= 9) return errorJSON("Límite de 8 noticias alcanzado."); 
+      const id = "NOTI-" + Math.floor(Math.random() * 100000);
+      sheet.appendRow([id, body.fecha, body.titulo, body.mensaje, body.autor, body.imagenUrl, body.nivel]);
+      return successJSON();
+    }
+    if (action === "edit_news") {
+      const sheet = ss.getSheetByName("Noticias");
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(body.id)) {
+          sheet.getRange(i + 1, 2).setValue(body.fecha);
+          sheet.getRange(i + 1, 3).setValue(body.titulo);
+          sheet.getRange(i + 1, 4).setValue(body.mensaje);
+          sheet.getRange(i + 1, 5).setValue(body.autor);
+          sheet.getRange(i + 1, 6).setValue(body.imagenUrl);
+          sheet.getRange(i + 1, 7).setValue(body.nivel);
+          break;
+        }
+      }
+      return successJSON();
+    }
+    if (action === "delete_news") {
+      const sheet = ss.getSheetByName("Noticias");
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(body.id)) {
+          sheet.deleteRow(i + 1);
+          break;
+        }
+      }
+      return successJSON();
+    }
+
+    // --- F. GUARDAR LOS 4 FORMULARIOS Y DIRECTORIO ---
+    if (action === "save_config") {
+      let sheetConf = ss.getSheetByName("Configuracion") || ss.getSheetByName("configuracion");
+      function updateOrInsert(clave, valor) {
+        let data = sheetConf.getDataRange().getValues();
+        let found = false;
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][0] == clave) { sheetConf.getRange(i + 1, 2).setValue(valor); found = true; break; }
+        }
+        if (!found) sheetConf.appendRow([clave, valor]);
+      }
+      
+      updateOrInsert("Form1_Titulo", body.f1t); updateOrInsert("Form1_URL", body.f1u);
+      updateOrInsert("Form2_Titulo", body.f2t); updateOrInsert("Form2_URL", body.f2u);
+      updateOrInsert("Form3_Titulo", body.f3t); updateOrInsert("Form3_URL", body.f3u);
+      updateOrInsert("Form4_Titulo", body.f4t); updateOrInsert("Form4_URL", body.f4u);
+      updateOrInsert("TelAdmin", body.telAdmin);
+      updateOrInsert("TelPorteria", body.telPorteria);
+      updateOrInsert("TelEmergencia", body.telEmergencia);
+      return successJSON();
+    }
+
+  } catch (e) { return errorJSON(e.toString()); } 
+  finally { lock.releaseLock(); }
+}
+
+function successJSON() { return ContentService.createTextOutput(JSON.stringify({result: "success"})).setMimeType(ContentService.MimeType.JSON); }
+function errorJSON(msg) { return ContentService.createTextOutput(JSON.stringify({result: "error", message: msg})).setMimeType(ContentService.MimeType.JSON); }
+function outputJSON(data) { return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON); }
+
+function autorizarPermisos() {
+  var email = Session.getActiveUser().getEmail();
+  GmailApp.sendEmail(email, "Prueba de Permisos", "Si lees esto, ya tienes permisos.");
+  console.log("Permisos concedidos");
+}
