@@ -1,5 +1,5 @@
 // 1. CONFIGURACIÓN GLOBAL
-const URL_API = "https://script.google.com/macros/s/AKfycbyWoIp5PmJcOyTnI2iEtkvJIaSbE7Yx3ywU2Q2ebWE1KYTpq98-QHcHuwel-Uvi-xUB9Q/exec"; 
+const URL_API = "https://script.google.com/macros/s/AKfycbxXwaACC2-Rwc9WAvm8-1Cuga8Z6RCwYtClgAUGYZMhHPAgvxWpYe7Bl63x8BxPQSZppg/exec"; 
 
 let usuarioActual = "";
 let rolActual = "";
@@ -820,8 +820,8 @@ window.cargarNoticiasAdmin = async () => {
                     <td class="p-3 font-bold">${noti.Titulo}</td>
                     <td class="p-3">${noti.Nivel || noti.Categoria || 'Info'}</td>
                     <td class="p-3 text-center">
-                        <button onclick="editarNoticiaPro('${noti.ID}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
-                        <button onclick="borrarNoticiaPro('${noti.ID}')" class="text-red-500"><i class="fas fa-trash"></i></button>
+                        <button onclick="editarNoticiaPro('${noti.ID || noti.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
+                        <button onclick="borrarNoticiaPro('${noti.ID || noti.id}')" class="text-red-500"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
         }).join('');
@@ -849,7 +849,7 @@ window.mostrarFormularioNoticia = () => {
 // --- EDITAR NOTICIA (Buscador implacable) ---
 window.editarNoticiaPro = (id) => {
     // 1. Buscamos el ID quitándole cualquier espacio fantasma
-    const noti = noticiasAdminGlobal.find(n => String(n.ID).trim() === String(id).trim());
+    const noti = noticiasAdminGlobal.find(n => String(n.ID || n.id).trim() === String(id).trim());
     
     if(!noti) {
         Swal.fire("Error", "No se encontró el ID de la noticia.", "error");
@@ -860,7 +860,7 @@ window.editarNoticiaPro = (id) => {
     mostrarFormularioNoticia();
 
     // 3. Llenamos los datos sin importar si vienen vacíos
-    document.getElementById('noti-id').value = noti.ID;
+    document.getElementById('noti-id').value = noti.ID || noti.id;
     document.getElementById('noti-titulo').value = noti.Titulo || '';
     document.getElementById('noti-contenido').value = noti.Mensaje || noti.Contenido || '';
     document.getElementById('noti-imagen').value = noti.Imagen || noti.ImagenUrl || '';
