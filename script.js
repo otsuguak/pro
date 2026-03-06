@@ -561,38 +561,61 @@ function verDetalle(id) {
     document.getElementById('modal-detalle').classList.remove('hidden');
     document.getElementById('det-id').innerText = caso.ID;
 
+    // 1. EXTRAEMOS LOS DATOS
     const subTipo = caso['Sub Tipo'] || caso.subTipo || '';
-    document.getElementById('det-desc').innerHTML = `<span class="block font-bold text-xs text-blue-600 mb-1">${subTipo}</span>${caso.Descripcion || "Sin descripción"}`;
+    const descripcionOriginal = caso.Descripcion || "Sin descripción";
+    const historialRespuestas = caso.Respuesta || "";
 
+    // 2. MAGIA CTO: ARMAMOS LA CAJA DE DESCRIPCIÓN + HISTORIAL CON SCROLL
+    let htmlContenido = `<span class="block font-bold text-xs text-blue-600 mb-1">${subTipo}</span>`;
+    htmlContenido += `<p class="text-sm text-gray-700">${descripcionOriginal}</p>`;
+
+    // Si hay historial, le agregamos la caja con scroll (max-h-32 y overflow-y-auto)
+    if (historialRespuestas.trim() !== "") {
+        htmlContenido += `
+            <div class="mt-4 pt-3 border-t border-gray-200">
+                <span class="block font-bold text-[10px] text-gray-500 mb-2 uppercase tracking-wider">
+                    <i class="fas fa-history mr-1"></i> Historial de Gestión
+                </span>
+                <div class="bg-slate-50 p-3 rounded-lg text-sm text-gray-600 max-h-32 overflow-y-auto whitespace-pre-wrap border border-slate-200 shadow-inner custom-scroll">
+                    ${historialRespuestas}
+                </div>
+            </div>
+        `;
+    }
+    document.getElementById('det-desc').innerHTML = htmlContenido;
+
+    // 3. ENLACE DE ADJUNTO
     const linkAdjunto = caso.Adjunto || "";
     const divAdjunto = document.getElementById('det-adjunto-container'); 
     
     if (divAdjunto) {
         if (linkAdjunto && linkAdjunto.startsWith("http")) {
-            divAdjunto.innerHTML = `<a href="${linkAdjunto}" target="_blank" class="text-blue-600 underline text-sm flex items-center mt-2">📎 Ver archivo adjunto</a>`;
+            divAdjunto.innerHTML = `<a href="${linkAdjunto}" target="_blank" class="text-blue-600 font-bold hover:text-blue-800 underline text-sm flex items-center mt-3"><i class="fas fa-paperclip mr-1"></i> Ver archivo adjunto</a>`;
         } else {
             divAdjunto.innerHTML = "";
         }
     }
     
-    document.getElementById('det-email').innerText = caso.Email || "Desconocido";
-    document.getElementById('det-estado').innerText = caso.Estado || "Abierto";
-    const respuestaActual = caso.Respuesta || "";
+    // 4. DATOS EXTRA
+    if (document.getElementById('det-email')) document.getElementById('det-email').innerText = caso.Email || "Desconocido";
+    if (document.getElementById('det-estado')) document.getElementById('det-estado').innerText = caso.Estado || "Abierto";
 
+    // 5. LÓGICA DE VISTAS (RESIDENTE VS ADMIN)
     if (rolActual === 'usuario') {
         document.getElementById('seccion-respuesta').classList.add('hidden');
-        document.getElementById('vista-respuesta-usuario').classList.remove('hidden');
-        document.getElementById('det-respuesta-texto').innerText = respuestaActual || "Aún no hay una respuesta oficial.";
-        toggleBtnGuardar(false); // <--- Oculta el botón de guardar al residente
+        // Ocultamos la vista vieja porque ya el historial está arriba en la descripción
+        if (document.getElementById('vista-respuesta-usuario')) document.getElementById('vista-respuesta-usuario').classList.add('hidden');
+        if (typeof toggleBtnGuardar === 'function') toggleBtnGuardar(false); 
     } else {
         document.getElementById('seccion-respuesta').classList.remove('hidden');
-        document.getElementById('vista-respuesta-usuario').classList.add('hidden');
+        if (document.getElementById('vista-respuesta-usuario')) document.getElementById('vista-respuesta-usuario').classList.add('hidden');
         document.getElementById('input-respuesta').value = ""; 
         
         const estadoActual = caso.Estado || "Abierto";
         const selector = document.getElementById('input-estado');
         if (selector) selector.value = (estadoActual === 'Cerrado') ? 'Cerrado' : 'En Proceso';
-        toggleBtnGuardar(true); // <--- Muestra el botón de guardar al Administrador
+        if (typeof toggleBtnGuardar === 'function') toggleBtnGuardar(true); 
     }
 }
 
@@ -616,10 +639,16 @@ async function guardarRespuesta() {
 
     if (!respuestaTexto) return mostrarMensaje("Falta información", "Por favor escribe una respuesta para el usuario antes de guardar.", "error");
 
-    const btn = document.querySelector("#seccion-respuesta button");
-    const textoOriginal = btn.innerText;
-    btn.innerText = "Guardando...";
-    btn.disabled = true;
+    // 🛡️ BÚSQUEDA DEL BOTÓN A PRUEBA DE BALAS
+    // Intenta buscar el botón de varias formas, o usa el que recibió el clic
+    const btn = document.querySelector("#seccion-respuesta button") || document.querySelector("button[onclick='guardarRespuesta()']");
+    let textoOriginal = "Guardar";
+    
+    if (btn) {
+        textoOriginal = btn.innerText;
+        btn.innerText = "Guardando...";
+        btn.disabled = true;
+    }
 
     // ENCENDEMOS PANTALLA DE CARGA
     mostrarLoader("Guardando", "Gestión", "Actualizando el caso y notificando al residente...");
@@ -636,8 +665,11 @@ async function guardarRespuesta() {
     } finally {
         // APAGAMOS PANTALLA DE CARGA
         ocultarLoader();
-        btn.innerText = textoOriginal;
-        btn.disabled = false;
+        // Restauramos el botón solo si existe
+        if (btn) {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
+        }
     }
 }
 

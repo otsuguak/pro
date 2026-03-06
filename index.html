@@ -17,6 +17,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
+    <div id="pantalla-carga-portal" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md transition-opacity duration-700">
+        <div class="relative w-20 h-20">
+            <div class="absolute inset-0 rounded-full border-t-2 border-blue-500 animate-spin"></div>
+            <div class="absolute inset-2 rounded-full border-r-2 border-slate-300 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+        </div>
+        <h2 class="mt-6 text-white text-xl font-light tracking-widest uppercase">Comunidad <span class="font-bold text-blue-500">Pro</span></h2>
+        <p class="mt-2 text-slate-400 text-sm animate-pulse">Sincronizando información...</p>
+    </div>
+    
     <nav class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">

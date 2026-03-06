@@ -5,6 +5,8 @@ let noticiasGlobales = []; // Guardamos las noticias en memoria para poder abrir
 document.addEventListener('DOMContentLoaded', () => {
     cargarNoticias();
     cargarFormularios();
+    
+
 });
 
 // ==========================================
@@ -78,9 +80,13 @@ async function cargarNoticias() {
             contenedor.innerHTML += tarjetaHTML;
         });
 
+        ocultarCargaPortal();
+
     } catch (error) {
         contenedor.innerHTML = `<p class="text-red-500 col-span-3 text-center py-10">Error al cargar las noticias. Verifica tu conexión.</p>`;
     }
+
+    
 }
 
 // ==========================================
@@ -166,5 +172,16 @@ async function cargarFormularios() {
 
     } catch (error) {
         console.error("Error cargando configuración de formularios:", error);
+    }
+}
+
+// Función para ocultar el loader con una transición suave
+function ocultarCargaPortal() {
+    const loader = document.getElementById('pantalla-carga-portal');
+    if (loader) {
+        loader.classList.add('opacity-0'); // Empieza a desvanecerse
+        setTimeout(() => {
+            loader.style.display = 'none'; // Lo quita por completo para que puedas hacer clic en la página
+        }, 700); // Espera a que termine la animación de CSS
     }
 }
