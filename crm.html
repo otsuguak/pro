@@ -515,6 +515,64 @@
         </div>
     </div>
 
+    </div>
+    </div>
+
+<div id="modal-crear-pqr" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85dvh] overflow-hidden border-t-4 border-blue-500">
+            <div class="bg-white p-4 flex justify-between items-center text-slate-800 shrink-0 border-b border-gray-100">
+                <h3 class="font-bold text-lg md:text-xl flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Radicar Nueva Solicitud
+                </h3>
+                <button onclick="cerrarModalPQR()" class="text-slate-400 hover:text-red-500 transition p-1 bg-gray-50 hover:bg-red-50 rounded-full">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-5 md:p-6 space-y-4 overflow-y-auto custom-scroll flex-1 bg-gray-50/30">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Tipo de Solicitud</label>
+                        <select id="pqr-tipo" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm">
+                            <option value="Petición">Petición</option>
+                            <option value="Queja">Queja</option>
+                            <option value="Reclamo">Reclamo</option>
+                            <option value="Felicitación">Felicitación</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Subcategoría</label>
+                        <select id="pqr-subtipo" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm">
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Convivencia">Convivencia</option>
+                            <option value="Administrativo">Administrativo</option>
+                            <option value="Seguridad">Seguridad</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Descripción Detallada</label>
+                    <textarea id="pqr-desc" class="w-full p-3 border border-gray-300 rounded-lg h-28 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition resize-none shadow-sm" placeholder="Explica detalladamente tu caso..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                        Evidencia Adjunta (Máx 2MB)
+                    </label>
+                    <input type="file" id="pqr-archivo" class="w-full p-2 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-white shrink-0">
+                <button onclick="enviarPQR()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-200 transform hover:-translate-y-0.5">Radicar Solicitud</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
