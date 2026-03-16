@@ -1,5 +1,5 @@
 // 1. CONFIGURACIÓN GLOBAL
-const URL_API = "https://script.google.com/macros/s/AKfycbw_wIUnStlyb2HtTB19TbhL64Rp5N523yKRz9S4kjEoNSrgZG3rBFMa0eIozUZldiBmug/exec"; 
+const URL_API = "https://script.google.com/macros/s/AKfycbyO0Lp_TiWAM6NnO0kUK-TxbhEgJ9snt6anJc4XgY8OiG9LvgNzHZ-akr1T3Vtjt8svMQ/exec"; 
 
 let usuarioActual = "";
 let rolActual = "";
